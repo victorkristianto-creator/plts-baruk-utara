@@ -2,13 +2,13 @@
 <html lang="id">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <title>Desain PLTS Baruk Utara</title>
 <style>
   :root{--bg:#0f172a;--panel:#111827ee;--line:#334155;--txt:#e5e7eb;--mut:#94a3b8;--acc:#f59e0b;--e:#38bdf8;--w:#f472b6}
   *{box-sizing:border-box}
   html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);font:14px/1.4 system-ui,Segoe UI,Roboto,sans-serif;overflow:hidden}
-  #c{position:fixed;inset:0;touch-action:none}
+  #c{position:fixed;left:0;top:0;width:100%;height:100%;display:block;touch-action:none}
   #ui{position:fixed;top:12px;left:12px;width:340px;max-height:calc(100% - 24px);overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;backdrop-filter:blur(6px)}
   h1{font-size:16px;margin:0 0 2px}
   .sub{color:var(--mut);font-size:12px;margin-bottom:12px}
@@ -30,25 +30,38 @@
   #toggle{display:none}
   #load{position:fixed;inset:0;display:grid;place-items:center;color:var(--mut);font-size:14px;pointer-events:none}
   .lbl{position:fixed;pointer-events:none;font-size:12px;font-weight:700;padding:2px 7px;border-radius:6px;background:#000b;white-space:nowrap;transform:translate(-50%,-50%)}
+  #fit{position:fixed;top:calc(10px + env(safe-area-inset-top));right:10px;width:44px;height:44px;border-radius:22px;border:1px solid var(--line);background:var(--panel);color:var(--txt);font-size:20px;cursor:pointer;display:grid;place-items:center}
+  #hint{position:fixed;top:calc(64px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);background:#000b;color:#fff;font-size:12px;padding:6px 10px;border-radius:8px;pointer-events:none;transition:opacity .6s;white-space:nowrap;display:none}
   @media (max-width:700px){
-    #ui{top:auto;bottom:0;left:0;right:0;width:auto;max-height:46%;border-radius:14px 14px 0 0}
+    #ui{top:auto;bottom:0;left:0;right:0;width:auto;max-height:62%;border-radius:16px 16px 0 0;padding:10px 12px calc(10px + env(safe-area-inset-bottom))}
+    h1{font-size:14px;padding-right:40px;cursor:pointer}
+    .sub{display:none}
+    #ui:not(.min) .sub{display:block}
     #ui.min .hide-min{display:none}
-    #toggle{display:block;position:absolute;right:12px;top:10px;background:none;border:0;color:var(--mut);font-size:18px}
+    .opts{margin-bottom:8px;gap:5px}
+    .opts button{padding:8px 2px;font-size:14px}
+    .opts button small{font-size:10px}
+    .big{font-size:18px}
+    #views{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+    #views::-webkit-scrollbar{display:none}
+    #views button{flex:0 0 auto;padding:9px 14px;font-size:13px}
+    #toggle{display:block;position:absolute;right:4px;top:2px;width:44px;height:44px;background:none;border:0;color:var(--mut);font-size:18px}
+    .lbl{font-size:11px}
+    #hint{display:block}
   }
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
 <div id="load">Memuat model 3D WebODM…</div>
+<button id="fit" aria-label="Pas ke rumah" title="Pas ke rumah">⤢</button>
+<div id="hint">1 jari: putar · 2 jari: geser &amp; zoom · ketuk 2×: pas</div>
 <div id="ui">
   <button id="toggle" aria-label="Lipat panel">▾</button>
   <h1>PLTS — Jl. Baruk Utara IX</h1>
   <div class="sub">Model 3D WebODM (survei drone 10/11/2026) · Trina Vertex N 720 Wp (2384 × 1303 mm), portrait · atap barat (kiri) & timur (kanan)</div>
   <div class="opts" id="opts"></div>
   <div class="big" id="kwp"></div>
-  <div class="hide-min">
-  <table id="tbl"></table>
-  <div class="sec">Tampilan</div>
   <div class="views" id="views">
     <button data-v="persp">3D</button>
     <button data-v="top">Atas</button>
@@ -56,6 +69,9 @@
     <button data-v="east">Timur</button>
     <button data-v="road">Dari jalan</button>
   </div>
+  <div class="hide-min">
+  <div class="sec">Detail</div>
+  <table id="tbl"></table>
   <div class="views">
     <button id="tglPv">PV: tampil</button>
     <button id="tglFace">Bidang atap: sembunyi</button>
@@ -4863,9 +4879,12 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xc9dcea);
 const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 800);
 const controls = new THREE.OrbitControls(camera, canvas);
-controls.enableDamping = true;
+controls.enableDamping = true; controls.dampingFactor = 0.12;
 controls.maxPolarAngle = Math.PI * 0.49;
-controls.minDistance = 4; controls.maxDistance = 120;
+controls.minDistance = 6; controls.maxDistance = 120;
+controls.rotateSpeed = 0.65; controls.zoomSpeed = 0.9; controls.panSpeed = 0.7;
+controls.screenSpacePanning = true;
+controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
 scene.add(new THREE.HemisphereLight(0xffffff, 0x777777, 0.9));
 const sun = new THREE.DirectionalLight(0xffffff, 0.6); sun.position.set(-10, 30, 15); scene.add(sun);
 
@@ -4993,7 +5012,7 @@ const optsEl = document.getElementById('opts');
 OPTIONS.forEach(o => {
   const b = document.createElement('button');
   b.innerHTML = `${o.label}<small>${sum(o.timur) + sum(o.barat)} × 720 Wp = ${fmt((sum(o.timur) + sum(o.barat)) * 0.72, 2)}</small>`;
-  b.onclick = () => { [...optsEl.children].forEach(x => x.classList.remove('on')); b.classList.add('on'); build(o); };
+  b.onclick = () => { [...optsEl.children].forEach(x => x.classList.remove('on')); b.classList.add('on'); build(o); if (typeof fit === 'function') fit(sum(o.barat) ? 'persp' : 'east'); };
   optsEl.appendChild(b);
 });
 
@@ -5001,42 +5020,66 @@ let pvVisible = true;
 document.getElementById('tglPv').onclick = e => { pvVisible = !pvVisible; pvGroup.visible = pvVisible; e.target.textContent = 'PV: ' + (pvVisible ? 'tampil' : 'sembunyi'); };
 document.getElementById('tglFace').onclick = e => { faceGroup.visible = !faceGroup.visible; e.target.textContent = 'Bidang atap: ' + (faceGroup.visible ? 'tampil' : 'sembunyi'); };
 
-const T0 = [0, 12, 0];
-const VIEWS = {
-  persp: [[-16, 30, 26], T0],
-  top:   [[0, 46, 0.3], T0],
-  west:  [[-26, 22, 0], T0],
-  east:  [[26, 22, 0], T0],
-  road:  [[2, 20, -30], T0],
-};
-function setView(v) {
-  const [p, t] = VIEWS[v];
-  const off = innerWidth > 700 ? -6 : 0;
-  let r = new THREE.Vector3(t[0] - p[0], 0, t[2] - p[2]).normalize(); r.set(-r.z, 0, r.x);
-  if (v === 'top') r.set(1, 0, 0);
-  r.multiplyScalar(off);
-  // layar HP (portrait): mundurkan kamera & turunkan target agar rumah tidak tertutup panel bawah
-  const k = innerWidth < innerHeight ? 1.7 : 1, dy = innerWidth < innerHeight ? -4 : 0;
-  camera.position.set(t[0] + (p[0] - t[0]) * k + r.x, t[1] + (p[1] - t[1]) * k, t[2] + (p[2] - t[2]) * k + r.z);
-  controls.target.set(t[0] + r.x, t[1] + dy, t[2] + r.z); controls.update();
-  document.querySelectorAll('#views button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+// ---------- Kamera: auto-fit ke rumah di area layar yang tidak tertutup panel ----------
+const FIT_C = new THREE.Vector3(1.9, 11, 0), FIT_R = 11.5;
+const DIRS = { persp:[5,30,24], top:[0,1,0.02], west:[-26,12,0], east:[26,16,6], road:[2,8,-30] };
+let curView = 'persp', anim = null;
+const uiEl = document.getElementById('ui');
+function applyViewport() {
+  const w = innerWidth, h = innerHeight, mob = w <= 700;
+  let x0 = 0, vw = w, vh = h;
+  if (mob) vh = Math.max(h * 0.35, h - uiEl.offsetHeight);
+  else if (uiEl.offsetParent) { x0 = uiEl.offsetWidth + 24; vw = Math.max(w * 0.45, w - x0); }
+  renderer.setSize(w, h);
+  camera.fov = mob ? 50 : 40;
+  camera.aspect = vw / vh;
+  camera.setViewOffset(vw, vh, -x0, 0, w, h);
+  camera.updateProjectionMatrix();
 }
-document.querySelectorAll('#views button').forEach(b => b.onclick = () => setView(b.dataset.v));
-document.getElementById('toggle').onclick = e => {
-  const ui = document.getElementById('ui'); ui.classList.toggle('min');
-  e.target.textContent = ui.classList.contains('min') ? '▴' : '▾';
-};
-function resize() {
-  renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight;
-  camera.fov = innerWidth < innerHeight ? 60 : 40; camera.updateProjectionMatrix();
+function fit(view, instant) {
+  curView = view;
+  const d = new THREE.Vector3(...DIRS[view]).normalize();
+  const vf = THREE.MathUtils.degToRad(camera.fov), hf = 2 * Math.atan(Math.tan(vf / 2) * camera.aspect);
+  const dist = FIT_R / Math.sin(Math.min(vf, hf) / 2);
+  controls.maxDistance = dist * 2.5;
+  const pos = FIT_C.clone().addScaledVector(d, dist);
+  if (instant) { camera.position.copy(pos); controls.target.copy(FIT_C); controls.update(); anim = null; }
+  else anim = { p0: camera.position.clone(), t0: controls.target.clone(), p1: pos, t1: FIT_C.clone(), s: performance.now() };
+  document.querySelectorAll('#views button').forEach(b => b.classList.toggle('on', b.dataset.v === view));
 }
-addEventListener('resize', resize); resize();
-setView('persp');
+controls.addEventListener('start', () => { anim = null; });
+document.querySelectorAll('#views button').forEach(b => b.onclick = () => fit(b.dataset.v));
+document.getElementById('fit').onclick = () => fit(curView);
+// ketuk 2x di layar = pas ke rumah
+let lastTap = 0;
+canvas.addEventListener('pointerup', e => { const n = performance.now(); if (n - lastTap < 300) fit(curView); lastTap = n; });
+function togglePanel() {
+  uiEl.classList.toggle('min');
+  document.getElementById('toggle').textContent = uiEl.classList.contains('min') ? '▴' : '▾';
+}
+document.getElementById('toggle').onclick = togglePanel;
+document.querySelector('#ui h1').onclick = () => { if (innerWidth <= 700) togglePanel(); };
+if (innerWidth <= 700) { uiEl.classList.add('min'); document.getElementById('toggle').textContent = '▴'; }
+if ('ResizeObserver' in window) new ResizeObserver(applyViewport).observe(uiEl);
+let lastW = innerWidth;
+addEventListener('resize', () => { applyViewport(); if (Math.abs(innerWidth - lastW) > 50) { lastW = innerWidth; fit(curView, true); } });
+addEventListener('orientationchange', () => setTimeout(() => { applyViewport(); fit(curView, true); }, 300));
+setTimeout(() => { const h = document.getElementById('hint'); if (h) h.style.opacity = 0; }, 4500);
 optsEl.children[1].click();
+applyViewport(); fit(sum(current.opt.barat) ? 'persp' : 'east', true);
 
 const tmp = new THREE.Vector3();
 (function loop() {
-  requestAnimationFrame(loop); controls.update(); renderer.render(scene, camera);
+  requestAnimationFrame(loop);
+  if (anim) {
+    const k = Math.min(1, (performance.now() - anim.s) / 600), e = 1 - Math.pow(1 - k, 3);
+    camera.position.lerpVectors(anim.p0, anim.p1, e); controls.target.lerpVectors(anim.t0, anim.t1, e);
+    if (k >= 1) anim = null;
+  }
+  controls.update();
+  // jaga titik pusat tetap di sekitar rumah
+  const tg = controls.target; tg.set(Math.min(14, Math.max(-12, tg.x)), Math.min(20, Math.max(2, tg.y)), Math.min(14, Math.max(-14, tg.z)));
+  renderer.render(scene, camera);
   labels.forEach(l => {
     tmp.copy(l.pos).project(camera);
     l.el.style.display = (tmp.z < 1 && (l.fixed || pvVisible)) ? '' : 'none';

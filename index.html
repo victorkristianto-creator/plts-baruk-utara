@@ -12,7 +12,7 @@
   #ui{position:fixed;top:12px;left:12px;width:340px;max-height:calc(100% - 24px);overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;backdrop-filter:blur(6px)}
   h1{font-size:16px;margin:0 0 2px}
   .sub{color:var(--mut);font-size:12px;margin-bottom:12px}
-  .opts{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:12px}
+  .opts{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px}
   .opts button{background:#1f2937;color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:10px 4px;font-weight:700;font-size:15px;cursor:pointer}
   .opts button small{display:block;font-weight:400;font-size:11px;color:var(--mut)}
   .opts button.on{background:var(--acc);color:#111;border-color:var(--acc)}
@@ -4860,8 +4860,9 @@ function layout(p, spec, align, pushSouth) {
   return { rows: out, missing };
 }
 
-// 8 kWp: hanya atap timur (biru). 12 kWp: 9 timur + 9 barat, susunan barat mengikuti timur (6 + 3)
+// 5 & 8 kWp: hanya atap timur (biru). 12 kWp: 9 timur + 9 barat, susunan barat mengikuti timur (6 + 3)
 const OPTIONS = [
+  { label:'5 kWp',  timur:[4,3], barat:[],    inv:'Inverter on-grid 5 kW', str:'1 string 7 seri (timur)' },
   { label:'8 kWp',  timur:[6,5], barat:[],    inv:'Inverter on-grid 8 kW 1-fasa (2 MPPT)', str:'MPPT1 6 seri · MPPT2 5 seri (keduanya timur)' },
   { label:'12 kWp', timur:[6,3], barat:[6,3], inv:'Inverter 10 kW 1-fasa (2 MPPT), DC/AC 1,30', str:'MPPT1 Timur 9 seri · MPPT2 Barat 9 seri', baratSouth:true },
 ];
@@ -5064,7 +5065,7 @@ let lastW = innerWidth;
 addEventListener('resize', () => { applyViewport(); if (Math.abs(innerWidth - lastW) > 50) { lastW = innerWidth; fit(curView, true); } });
 addEventListener('orientationchange', () => setTimeout(() => { applyViewport(); fit(curView, true); }, 300));
 setTimeout(() => { const h = document.getElementById('hint'); if (h) h.style.opacity = 0; }, 4500);
-optsEl.children[0].click();
+optsEl.children[1].click();
 applyViewport(); fit(sum(current.opt.barat) ? 'persp' : 'east', true);
 
 const tmp = new THREE.Vector3();
